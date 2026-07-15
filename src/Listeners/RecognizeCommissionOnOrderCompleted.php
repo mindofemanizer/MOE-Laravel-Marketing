@@ -18,6 +18,14 @@ class RecognizeCommissionOnOrderCompleted
     public function handle(OrderStatusChanged $event): void
     {
         try {
+            // Ketika app menggunakan CommissionService-nya sendiri (lebih kaya:
+            // gross-profit, hold/release/reverse), nonaktifkan handler package ini
+            // lewat config('marketing.commission.use_package_handler') agar tidak
+            // menghasilkan ledger komisi ganda. Default: aktif (standalone).
+            if (! config('marketing.commission.use_package_handler', true)) {
+                return;
+            }
+
             if ($event->newStatus !== 'completed') {
                 return;
             }
