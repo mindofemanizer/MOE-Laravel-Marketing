@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Moe\Marketing\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -34,12 +36,12 @@ class PromoUsage extends Model
         return $this->belongsTo(Promo::class);
     }
 
-    public function order()
+    public function order(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.order', 'App\\Models\\Order'));
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.user', 'App\\Models\\User'));
     }

@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Moe\Marketing\Services;
 
-use Illuminate\Support\Facades\DB;
 use Moe\Core\Base\BaseService;
 use Moe\Marketing\Models\Promo;
 use Moe\Marketing\Models\PromoUsage;

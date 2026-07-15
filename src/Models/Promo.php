@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Moe\Marketing\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Moe\Marketing\Contracts\PromoInterface;
 
@@ -13,11 +16,11 @@ class Promo extends Model implements PromoInterface
 
     protected $table;
 
-    const TYPE_PERCENTAGE = 'percentage';
-    const TYPE_NOMINAL = 'nominal';
-    const TYPE_FREE_SHIPPING = 'free_shipping';
+    public const TYPE_PERCENTAGE = 'percentage';
+    public const TYPE_NOMINAL = 'nominal';
+    public const TYPE_FREE_SHIPPING = 'free_shipping';
 
-    const TYPE_LABELS = [
+    public const TYPE_LABELS = [
         self::TYPE_PERCENTAGE => 'Persentase',
         self::TYPE_NOMINAL => 'Nominal',
         self::TYPE_FREE_SHIPPING => 'Gratis Ongkir',
@@ -59,7 +62,7 @@ class Promo extends Model implements PromoInterface
         $this->table = config('marketing.tables.promos', 'promos');
     }
 
-    public function usages()
+    public function usages(): HasMany
     {
         return $this->hasMany(PromoUsage::class);
     }

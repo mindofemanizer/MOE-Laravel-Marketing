@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Moe\Marketing\Contracts;
 
 interface PromoInterface

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Moe\Marketing\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -12,12 +14,12 @@ class CommissionLedger extends Model
 
     protected $table;
 
-    const STATUS_ON_HOLD = 'on_hold';
-    const STATUS_RELEASED = 'released';
-    const STATUS_REVERSED = 'reversed';
-    const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_ON_HOLD = 'on_hold';
+    public const STATUS_RELEASED = 'released';
+    public const STATUS_REVERSED = 'reversed';
+    public const STATUS_CANCELLED = 'cancelled';
 
-    const STATUS_LABELS = [
+    public const STATUS_LABELS = [
         self::STATUS_ON_HOLD => 'Ditahan',
         self::STATUS_RELEASED => 'Dirilis',
         self::STATUS_REVERSED => 'Dikembalikan',
@@ -53,22 +55,22 @@ class CommissionLedger extends Model
         $this->table = config('marketing.tables.commission_ledger', 'commission_ledger');
     }
 
-    public function marketingUser()
+    public function marketingUser(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.user', 'App\\Models\\User'), 'marketing_user_id');
     }
 
-    public function customerUser()
+    public function customerUser(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.user', 'App\\Models\\User'), 'customer_user_id');
     }
 
-    public function order()
+    public function order(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.order', 'App\\Models\\Order'), 'order_id');
     }
 
-    public function orderItem()
+    public function orderItem(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.order_item', 'App\\Models\\OrderItem'), 'order_item_id');
     }

@@ -1,14 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Moe\Marketing\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Moe\Core\Base\BaseService;
-use Moe\Finance\Models\WalletTransaction;
-use Moe\Finance\Services\WalletService;
 use Moe\Marketing\Models\CommissionLedger;
-use Moe\Marketing\Models\MarketingAttributionLog;
 
 class CommissionService extends BaseService
 {

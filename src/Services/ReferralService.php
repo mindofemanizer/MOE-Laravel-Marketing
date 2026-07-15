@@ -1,20 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Moe\Marketing\Services;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cookie;
 use Moe\Core\Base\BaseService;
 use Moe\Marketing\Models\MarketingAttributionLog;
 
 class ReferralService extends BaseService
 {
-    const COOKIE_NAME = 'referral_slug';
-    const COOKIE_DURATION = 60 * 24 * 30; // 30 days in minutes
+    public const COOKIE_NAME = 'referral_slug';
+    public const COOKIE_DURATION = 60 * 24 * 30; // 30 days in minutes
 
     /**
      * Find marketing user by referral slug.
      */
-    public function findBySlug(string $slug)
+    public function findBySlug(string $slug): ?Model
     {
         return config('marketing.models.user')::where('referral_slug', $slug)
             ->where('is_active', true)
