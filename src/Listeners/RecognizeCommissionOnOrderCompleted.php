@@ -6,8 +6,7 @@ namespace Moe\Marketing\Listeners;
 
 use Illuminate\Support\Facades\Log;
 use Moe\Commerce\Events\OrderStatusChanged;
-use Moe\Marketing\Models\CommissionLedger;
-use Moe\Marketing\Models\MarketingAttributionLog;
+use Moe\Marketing\Services\CommissionService;
 
 class RecognizeCommissionOnOrderCompleted
 {
@@ -18,10 +17,10 @@ class RecognizeCommissionOnOrderCompleted
     public function handle(OrderStatusChanged $event): void
     {
         try {
-            // Ketika app menggunakan CommissionService-nya sendiri (lebih kaya:
-            // gross-profit, hold/release/reverse), nonaktifkan handler package ini
-            // lewat config('marketing.commission.use_package_handler') agar tidak
-            // menghasilkan ledger komisi ganda. Default: aktif (standalone).
+            // Handler package aktif kalau app memilih menggunakan CommissionService
+            // package (bukan CommissionService lokal). Default: aktif (standalone).
+            // App KiosKit men-set 'marketing.commission.use_package_handler' = true
+            // supaya domain komisi di-handle package (gross-profit, hold/release/reverse).
             if (! config('marketing.commission.use_package_handler', true)) {
                 return;
             }
@@ -30,30 +29,7 @@ class RecognizeCommissionOnOrderCompleted
                 return;
             }
 
-            $customerUserId = $event->order->user_id;
-
-            $attribution = MarketingAttributionLog::where('customer_user_id', $customerUserId)
-                ->where('action', MarketingAttributionLog::ACTION_ATTRIBUTE)
-                ->latest()
-                ->first();
-
-            if (! $attribution || ! $attribution->to_marketing_user_id) {
-                return;
-            }
-
-            $commissionRate = (float) config('marketing.commission.default_rate', 10);
-            $commissionAmount = (float) $event->order->total * ($commissionRate / 100);
-
-            CommissionLedger::create([
-                'marketing_user_id' => $attribution->to_marketing_user_id,
-                'customer_user_id' => $customerUserId,
-                'order_id' => $event->order->id,
-                'amount' => $commissionAmount,
-                'rate' => $commissionRate,
-                'status' => CommissionLedger::STATUS_ON_HOLD,
-                'release_due_at' => now()->addDays(config('marketing.commission.hold_days', 7)),
-                'notes' => "Komisi referral order {$event->order->order_number}",
-            ]);
+            app(CommissionService::class)->recognize($event->order);
         } catch (\Throwable $e) {
             Log::error('[marketing] RecognizeCommissionOnOrderCompleted failed: '.$e->getMessage(), [
                 'order_id' => $event->order?->id,

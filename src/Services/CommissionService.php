@@ -4,100 +4,175 @@ declare(strict_types=1);
 
 namespace Moe\Marketing\Services;
 
+use App\Models\Order;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Moe\Core\Base\BaseService;
+use Moe\Finance\Models\Wallet;
 use Moe\Marketing\Models\CommissionLedger;
 
 class CommissionService extends BaseService
 {
     /**
-     * Recognize commission for an order.
+     * Recognize komisi untuk satu order yang baru saja jadi paid/completed.
+     *
+     * Mengadopsi logika gross-profit dari app:
+     *   grossProfit = (Σ retail_price·qty) − (Σ supplier_base_price·qty) − discount
+     *   commission  = round(grossProfit · rate% , 2)
+     *
+     * Idempotent: kalau ledger sudah ada untuk order_id ini, skip.
+     * Return null kalau tidak ada attribution atau marketing nonaktif.
      *
      * @param \Illuminate\Database\Eloquent\Model $order
-     * @return void
+     * @return \Moe\Marketing\Models\CommissionLedger|null
      */
-    public function recognize(Model $order): void
+    public function recognize(Model $order): ?CommissionLedger
     {
-        $orderId = $order->id;
-        $customerUserId = $order->user_id;
-        $marketingUser = $this->getAttributedMarketing($customerUserId);
+        /** @var Order $order */
+        $order->loadMissing(['items', 'user']);
 
-        if (! $marketingUser) {
-            return;
+        $customer = $order->user;
+        if (! $customer || ! $customer->referred_by_user_id) {
+            return null;
         }
 
-        $commissionRate = (float) $marketingUser->effectiveCommissionRate();
+        $userModel = config('marketing.models.user', User::class);
+        $marketing = $userModel::where('id', $customer->referred_by_user_id)
+            ->where('role', 'marketing')
+            ->where('is_active', true)
+            ->first();
 
-        DB::transaction(function () use ($order, $orderId, $marketingUser, $commissionRate) {
-            foreach ($order->items as $item) {
-                $grossProfit = $item->subtotal - ($item->cost_snapshot * $item->quantity);
-                $commissionAmount = $grossProfit * $commissionRate / 100;
+        if (! $marketing) {
+            Log::info('[marketing] commission.recognize.skip_inactive_marketing', [
+                'order_id' => $order->id,
+                'marketing_id' => $customer->referred_by_user_id,
+            ]);
 
-                if ($commissionAmount <= 0) {
-                    continue;
-                }
+            return null;
+        }
 
-                CommissionLedger::create([
-                    'marketing_user_id' => $marketingUser->id,
-                    'customer_user_id' => $order->user_id,
-                    'order_id' => $orderId,
-                    'order_item_id' => $item->id,
-                    'amount' => $commissionAmount,
-                    'rate' => $commissionRate,
-                    'status' => CommissionLedger::STATUS_ON_HOLD,
-                    'release_due_at' => now()->addDays(config('marketing.commission.hold_days', 7)),
-                    'notes' => "Commission from Order #{$order->order_number}",
-                ]);
+        $gross = 0.0;
+        $cost = 0.0;
+
+        foreach ($order->items as $item) {
+            $qty = (float) $item->quantity;
+            $price = (float) ($item->retail_price ?? 0);
+            $itemCost = (float) ($item->supplier_base_price ?? 0);
+
+            $gross += $price * $qty;
+            $cost += $itemCost * $qty;
+        }
+
+        $discount = (float) ($order->discount ?? 0);
+        $grossProfit = max(0.0, $gross - $cost - $discount);
+
+        $rate = (float) $marketing->effectiveCommissionRate();
+        $commission = round($grossProfit * $rate / 100.0, 2);
+
+        $holdDays = (int) (config('marketing.commission.hold_days', 7));
+
+        $ledger = DB::transaction(function () use (
+            $order, $marketing, $customer, $rate,
+            $gross, $cost, $discount, $grossProfit, $commission, $holdDays
+        ) {
+            $existing = CommissionLedger::where('order_id', $order->id)->first();
+            if ($existing) {
+                return $existing;
             }
+
+            return CommissionLedger::create([
+                'marketing_user_id' => $marketing->id,
+                'customer_user_id' => $customer->id,
+                'order_id' => $order->id,
+                'rate' => $rate,
+                'gross_amount' => $gross,
+                'cost_amount' => $cost,
+                'discount_amount' => $discount,
+                'gross_profit' => $grossProfit,
+                'commission_amount' => $commission,
+                'status' => CommissionLedger::STATUS_ON_HOLD,
+                'recognized_at' => now(),
+                'hold_release_at' => now()->addDays($holdDays),
+                'meta' => [
+                    'order_number' => $order->order_number ?? null,
+                    'item_count' => $order->items->count(),
+                ],
+            ]);
         });
+
+        Log::info('[marketing] commission.recognized', [
+            'ledger_id' => $ledger->id,
+            'order_id' => $order->id,
+            'marketing_id' => $marketing->id,
+            'amount' => $commission,
+            'hold_release_at' => $ledger->hold_release_at->toDateTimeString(),
+        ]);
+
+        return $ledger;
     }
 
     /**
-     * Reverse commission for a cancelled/refunded order.
+     * Reverse komisi untuk order yang di-refund/cancel.
+     *
+     *  - on_hold   → flip status ke reversed
+     *  - released  → debit wallet marketing (allowNegative=true, piutang)
+     *  - reversed/cancelled → no-op (idempoten)
      *
      * @param \Illuminate\Database\Eloquent\Model $order
      * @param string $reason
-     * @return void
+     * @return \Moe\Marketing\Models\CommissionLedger|null
      */
-    public function reverse(Model $order, string $reason): void
+    public function reverse(Model $order, string $reason = 'order_refunded'): ?CommissionLedger
     {
-        $ledgers = CommissionLedger::where('order_id', $order->id)->get();
-
-        foreach ($ledgers as $ledger) {
-            DB::transaction(function () use ($ledger, $reason) {
-                if ($ledger->status === CommissionLedger::STATUS_RELEASED) {
-                    $marketingUser = $ledger->marketingUser;
-
-                    if ($marketingUser) {
-                        $wallet = \Moe\Finance\Models\Wallet::where('walletable_type', get_class($marketingUser))
-                            ->where('walletable_id', $marketingUser->id)
-                            ->first();
-
-                        if ($wallet) {
-                            $wallet->debit(
-                                $ledger->amount,
-                                'commission_reversal',
-                                "Reversal: {$reason}"
-                            );
-                        }
-                    }
-                }
-
-                $ledger->reverse($reason);
-            });
+        $ledger = CommissionLedger::where('order_id', $order->id)->first();
+        if (! $ledger) {
+            return null;
         }
+
+        if (in_array($ledger->status, [
+            CommissionLedger::STATUS_REVERSED,
+            CommissionLedger::STATUS_CANCELLED,
+        ], true)) {
+            return $ledger;
+        }
+
+        $fromStatus = $ledger->status;
+        $wasReleased = $fromStatus === CommissionLedger::STATUS_RELEASED;
+
+        DB::transaction(function () use ($ledger, $reason, $wasReleased) {
+            if ($wasReleased) {
+                $this->debitMarketingWallet(
+                    $ledger->marketing_user_id,
+                    (float) $ledger->commission_amount,
+                    "Pembalikan komisi order #{$ledger->order_id} ({$reason})"
+                );
+            }
+
+            $ledger->reverse($reason);
+        });
+
+        Log::info('[marketing] commission.reversed', [
+            'ledger_id' => $ledger->id,
+            'order_id' => $order->id,
+            'from_status' => $fromStatus,
+            'wallet_debited' => $wasReleased,
+            'reason' => $reason,
+        ]);
+
+        return $ledger->fresh();
     }
 
     /**
-     * Release commissions that are due.
+     * Release komisi yang sudah lewat masa hold ke wallet marketing.
      *
-     * @return int
+     * @return int jumlah ledger yang dilepas.
      */
     public function releaseDue(): int
     {
         $dueLedgers = CommissionLedger::where('status', CommissionLedger::STATUS_ON_HOLD)
-            ->where('release_due_at', '<=', now())
+            ->where('hold_release_at', '<=', now())
             ->get();
 
         $released = 0;
@@ -105,28 +180,19 @@ class CommissionService extends BaseService
         foreach ($dueLedgers as $ledger) {
             try {
                 DB::transaction(function () use ($ledger) {
-                    $marketingUser = $ledger->marketingUser;
+                    $wallet = $this->marketingWallet($ledger->marketing_user_id);
 
-                    if ($marketingUser) {
-                        $wallet = \Moe\Finance\Models\Wallet::where('walletable_type', get_class($marketingUser))
-                            ->where('walletable_id', $marketingUser->id)
-                            ->firstOrCreate(
-                                ['walletable_type' => get_class($marketingUser), 'walletable_id' => $marketingUser->id],
-                                ['balance' => 0, 'currency' => config('finance.currency', 'IDR')]
-                            );
-
-                        $wallet->credit(
-                            $ledger->amount,
-                            'commission_credit',
-                            "Commission release from Order #{$ledger->order->order_number}"
-                        );
-                    }
+                    $wallet->credit(
+                        (float) $ledger->commission_amount,
+                        'commission_credit',
+                        "Commission release from Order #{$ledger->order_id}"
+                    );
 
                     $ledger->release();
                 });
                 $released++;
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Failed to release commission #{$ledger->id}: {$e->getMessage()}");
+            } catch (\Throwable $e) {
+                Log::error("[marketing] Failed to release commission #{$ledger->id}: {$e->getMessage()}");
             }
         }
 
@@ -134,13 +200,31 @@ class CommissionService extends BaseService
     }
 
     /**
-     * Get attributed marketing user for a customer.
-     *
-     * @param int $customerUserId
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * Cek apakah ada ledger untuk order ini.
      */
-    protected function getAttributedMarketing(int $customerUserId): ?Model
+    public function hasLedger(Model $order): bool
     {
-        return config('marketing.models.user')::find($customerUserId)?->referredBy;
+        return CommissionLedger::where('order_id', $order->id)->exists();
+    }
+
+    protected function marketingWallet(int $marketingUserId): Wallet
+    {
+        $userModel = config('marketing.models.user', User::class);
+        $walletableType = $userModel;
+
+        return Wallet::query()
+            ->where('walletable_type', $walletableType)
+            ->where('walletable_id', $marketingUserId)
+            ->firstOrCreate(
+                ['walletable_type' => $walletableType, 'walletable_id' => $marketingUserId],
+                ['balance' => 0, 'currency' => config('finance.currency', 'IDR')]
+            );
+    }
+
+    protected function debitMarketingWallet(int $marketingUserId, float $amount, string $description): void
+    {
+        $wallet = $this->marketingWallet($marketingUserId);
+
+        $wallet->debit($amount, 'commission_reversal', $description, allowNegative: true);
     }
 }
