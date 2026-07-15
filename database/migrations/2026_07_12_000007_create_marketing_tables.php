@@ -9,6 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Commission Ledger (owned by the Marketing package)
+        if (!Schema::hasTable('marketing_commission_ledger')) {
         Schema::create('marketing_commission_ledger', function (Blueprint $table) {
             $table->id();
             $table->foreignId('marketing_user_id')->constrained('users')->restrictOnDelete();
@@ -29,6 +30,7 @@ return new class extends Migration
             $table->index(['marketing_user_id', 'status']);
             $table->index(['order_id', 'status']);
         });
+        }
 
         // The following tables are owned by the host application (KiosKit),
         // which already implements attribution, promos and promo usages.
