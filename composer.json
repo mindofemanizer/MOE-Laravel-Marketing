@@ -4,7 +4,7 @@
     "type": "library", "license": "MIT",
     "autoload": { "psr-4": { "Moe\\Marketing\\": "src/" } },
     "autoload-dev": { "psr-4": { "Moe\\Marketing\\Tests\\": "tests/" } },
-    "require": { "php": "^8.2", "illuminate/support": "^11.0|^12.0", "moe/laravel-core": "*" },
+    "require": { "php": "^8.2", "illuminate/support": "^11.0|^12.0|^13.0", "moe/laravel-core": "*" },
     "require-dev": { "orchestra/testbench": "^9.0", "phpunit/phpunit": "^10.5" },
     "repositories": [{ "type": "path", "url": "D:\\Project-Development\\MOE-Laravel-Core" }],
     "extra": { "laravel": { "providers": ["Moe\\Marketing\\MarketingServiceProvider"] } },
