@@ -14,25 +14,29 @@ class RecognizeCommissionOnOrderCompleted
             return;
         }
 
-        $attribution = MarketingAttributionLog::where('order_id', $event->order->id)
-            ->where('type', 'referral')
+        $customerUserId = $event->order->user_id;
+
+        $attribution = MarketingAttributionLog::where('customer_user_id', $customerUserId)
+            ->where('action', MarketingAttributionLog::ACTION_ATTRIBUTE)
+            ->latest()
             ->first();
 
-        if (! $attribution) {
+        if (! $attribution || ! $attribution->to_marketing_user_id) {
             return;
         }
 
-        $commissionRate = (float) config('marketing.commission.default_rate', 10) / 100;
-        $commissionAmount = (float) $event->order->total * $commissionRate;
+        $commissionRate = (float) config('marketing.commission.default_rate', 10);
+        $commissionAmount = (float) $event->order->total * ($commissionRate / 100);
 
         CommissionLedger::create([
-            'user_id' => $attribution->referred_user_id,
-            'type' => 'referral',
+            'marketing_user_id' => $attribution->to_marketing_user_id,
+            'customer_user_id' => $customerUserId,
+            'order_id' => $event->order->id,
             'amount' => $commissionAmount,
-            'description' => "Komisi referral order {$event->order->order_number}",
-            'reference_type' => 'order',
-            'reference_id' => $event->order->id,
-            'status' => 'pending',
+            'rate' => $commissionRate,
+            'status' => CommissionLedger::STATUS_ON_HOLD,
+            'release_due_at' => now()->addDays(config('marketing.commission.hold_days', 7)),
+            'notes' => "Komisi referral order {$event->order->order_number}",
         ]);
     }
 }

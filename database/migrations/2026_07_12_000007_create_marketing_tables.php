@@ -83,6 +83,6 @@ return new class extends Migration
         Schema::dropIfExists('promo_usages');
         Schema::dropIfExists('promos');
         Schema::dropIfExists('marketing_attribution_logs');
-        Schema::dropIfExists('commission_ledger');
+        Schema::dropIfExists('marketing_commission_ledger');
     }
 };

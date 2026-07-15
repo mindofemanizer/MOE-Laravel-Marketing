@@ -61,15 +61,21 @@ class CommissionService extends BaseService
         foreach ($ledgers as $ledger) {
             DB::transaction(function () use ($ledger, $reason) {
                 if ($ledger->status === CommissionLedger::STATUS_RELEASED) {
-                    // Already released → debit back from wallet
-                    $walletService = app(WalletService::class);
                     $marketingUser = $ledger->marketingUser;
 
-                    $walletService->debit(
-                        $ledger->amount,
-                        'commission_reversal',
-                        "Reversal: {$reason}"
-                    );
+                    if ($marketingUser) {
+                        $wallet = \Moe\Finance\Models\Wallet::where('walletable_type', get_class($marketingUser))
+                            ->where('walletable_id', $marketingUser->id)
+                            ->first();
+
+                        if ($wallet) {
+                            $wallet->debit(
+                                $ledger->amount,
+                                'commission_reversal',
+                                "Reversal: {$reason}"
+                            );
+                        }
+                    }
                 }
 
                 $ledger->reverse($reason);
@@ -91,14 +97,22 @@ class CommissionService extends BaseService
         foreach ($dueLedgers as $ledger) {
             try {
                 DB::transaction(function () use ($ledger) {
-                    $walletService = app(WalletService::class);
                     $marketingUser = $ledger->marketingUser;
 
-                    $walletService->credit(
-                        $ledger->amount,
-                        'commission_credit',
-                        "Commission release from Order #{$ledger->order->order_number}"
-                    );
+                    if ($marketingUser) {
+                        $wallet = \Moe\Finance\Models\Wallet::where('walletable_type', get_class($marketingUser))
+                            ->where('walletable_id', $marketingUser->id)
+                            ->firstOrCreate(
+                                ['walletable_type' => get_class($marketingUser), 'walletable_id' => $marketingUser->id],
+                                ['balance' => 0, 'currency' => config('finance.currency', 'IDR')]
+                            );
+
+                        $wallet->credit(
+                            $ledger->amount,
+                            'commission_credit',
+                            "Commission release from Order #{$ledger->order->order_number}"
+                        );
+                    }
 
                     $ledger->release();
                 });
