@@ -2,6 +2,7 @@
 
 namespace Moe\Marketing;
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class MarketingServiceProvider extends ServiceProvider
@@ -22,5 +23,19 @@ class MarketingServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../database/migrations' => database_path('migrations'),
         ], 'marketing-migrations');
+
+        $this->registerEventListeners();
+    }
+
+    protected function registerEventListeners(): void
+    {
+        if (! class_exists('Moe\\Commerce\\Events\\OrderStatusChanged')) {
+            return;
+        }
+
+        Event::listen(
+            'Moe\\Commerce\\Events\\OrderStatusChanged',
+            'Moe\\Marketing\\Listeners\\RecognizeCommissionOnOrderCompleted'
+        );
     }
 }

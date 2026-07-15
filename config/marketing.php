@@ -26,7 +26,7 @@ return [
 
     'tables' => [
 
-        'commission_ledger' => 'commission_ledger',
+        'commission_ledger' => 'marketing_commission_ledger',
 
         'attribution_logs' => 'marketing_attribution_logs',
 
