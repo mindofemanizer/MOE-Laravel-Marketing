@@ -62,6 +62,9 @@ class Promo extends Model implements PromoInterface
         $this->table = config('marketing.tables.promos', 'promos');
     }
 
+    /**
+     * @return HasMany
+     */
     public function usages(): HasMany
     {
         return $this->hasMany(PromoUsage::class);
@@ -97,16 +100,25 @@ class Promo extends Model implements PromoInterface
         };
     }
 
+    /**
+     * @return int
+     */
     public function getUsageLimit(): int
     {
         return $this->usage_limit ?? PHP_INT_MAX;
     }
 
+    /**
+     * @return int
+     */
     public function getUsageCount(): int
     {
         return $this->usages()->count();
     }
 
+    /**
+     * @return string
+     */
     public function getStatusLabelAttribute(): string
     {
         if (! $this->is_active) {

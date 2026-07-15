@@ -16,6 +16,9 @@ class ReferralService extends BaseService
 
     /**
      * Find marketing user by referral slug.
+     *
+     * @param string $slug
+     * @return \Illuminate\Database\Eloquent\Model|null
      */
     public function findBySlug(string $slug): ?Model
     {
@@ -26,6 +29,9 @@ class ReferralService extends BaseService
 
     /**
      * Set referral cookie.
+     *
+     * @param string $slug
+     * @return void
      */
     public function setReferralCookie(string $slug): void
     {
@@ -34,6 +40,9 @@ class ReferralService extends BaseService
 
     /**
      * Get referral slug from cookie or input.
+     *
+     * @param string|null $inputCode
+     * @return string|null
      */
     public function getReferralSlug(?string $inputCode = null): ?string
     {
@@ -42,6 +51,11 @@ class ReferralService extends BaseService
 
     /**
      * Attribute customer to a marketing user.
+     *
+     * @param int $customerUserId
+     * @param int $marketingUserId
+     * @param string $source
+     * @return bool
      */
     public function attribute(int $customerUserId, int $marketingUserId, string $source): bool
     {
@@ -70,6 +84,13 @@ class ReferralService extends BaseService
 
     /**
      * Transfer attribution from one marketing user to another.
+     *
+     * @param int $customerUserId
+     * @param int $newMarketingUserId
+     * @param string|null $notes
+     * @return void
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
     public function transferAttribution(int $customerUserId, int $newMarketingUserId, ?string $notes = null): void
     {
@@ -94,6 +115,10 @@ class ReferralService extends BaseService
 
     /**
      * Get referred customers for a marketing user.
+     *
+     * @param int $marketingUserId
+     * @param int $limit
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getReferredCustomers(int $marketingUserId, int $limit = 50): \Illuminate\Database\Eloquent\Collection
     {

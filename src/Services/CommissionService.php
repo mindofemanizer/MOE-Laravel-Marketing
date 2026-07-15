@@ -13,6 +13,9 @@ class CommissionService extends BaseService
 {
     /**
      * Recognize commission for an order.
+     *
+     * @param \Illuminate\Database\Eloquent\Model $order
+     * @return void
      */
     public function recognize(Model $order): void
     {
@@ -52,6 +55,10 @@ class CommissionService extends BaseService
 
     /**
      * Reverse commission for a cancelled/refunded order.
+     *
+     * @param \Illuminate\Database\Eloquent\Model $order
+     * @param string $reason
+     * @return void
      */
     public function reverse(Model $order, string $reason): void
     {
@@ -84,6 +91,8 @@ class CommissionService extends BaseService
 
     /**
      * Release commissions that are due.
+     *
+     * @return int
      */
     public function releaseDue(): int
     {
@@ -126,6 +135,9 @@ class CommissionService extends BaseService
 
     /**
      * Get attributed marketing user for a customer.
+     *
+     * @param int $customerUserId
+     * @return \Illuminate\Database\Eloquent\Model|null
      */
     protected function getAttributedMarketing(int $customerUserId): ?Model
     {

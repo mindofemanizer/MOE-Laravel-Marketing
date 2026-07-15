@@ -12,6 +12,11 @@ class PromoService extends BaseService
 {
     /**
      * Validate promo code and get discount.
+     *
+     * @param string $code
+     * @param float $subtotal
+     * @param int $userId
+     * @return array
      */
     public function validateAndApply(string $code, float $subtotal, int $userId): array
     {
@@ -60,6 +65,12 @@ class PromoService extends BaseService
 
     /**
      * Record promo usage.
+     *
+     * @param \Moe\Marketing\Models\Promo $promo
+     * @param int $orderId
+     * @param int $userId
+     * @param float $discountAmount
+     * @return \Moe\Marketing\Models\PromoUsage
      */
     public function recordUsage(Promo $promo, int $orderId, int $userId, float $discountAmount): PromoUsage
     {
@@ -73,6 +84,8 @@ class PromoService extends BaseService
 
     /**
      * Get active promos.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getActivePromos(): \Illuminate\Database\Eloquent\Collection
     {

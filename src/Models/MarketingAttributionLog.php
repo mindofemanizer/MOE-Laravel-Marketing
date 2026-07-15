@@ -38,16 +38,25 @@ class MarketingAttributionLog extends Model
         $this->table = config('marketing.tables.attribution_logs', 'marketing_attribution_logs');
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function customerUser(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.user', 'App\\Models\\User'), 'customer_user_id');
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function fromMarketingUser(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.user', 'App\\Models\\User'), 'from_marketing_user_id');
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function toMarketingUser(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.user', 'App\\Models\\User'), 'to_marketing_user_id');

@@ -9,11 +9,17 @@ use Illuminate\Support\ServiceProvider;
 
 class MarketingServiceProvider extends ServiceProvider
 {
+    /**
+     * @return void
+     */
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/marketing.php', 'marketing');
     }
 
+    /**
+     * @return void
+     */
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
@@ -29,6 +35,9 @@ class MarketingServiceProvider extends ServiceProvider
         $this->registerEventListeners();
     }
 
+    /**
+     * @return void
+     */
     protected function registerEventListeners(): void
     {
         if (! class_exists('Moe\\Commerce\\Events\\OrderStatusChanged')) {

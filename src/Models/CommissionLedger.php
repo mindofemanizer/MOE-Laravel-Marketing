@@ -55,26 +55,41 @@ class CommissionLedger extends Model
         $this->table = config('marketing.tables.commission_ledger', 'commission_ledger');
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function marketingUser(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.user', 'App\\Models\\User'), 'marketing_user_id');
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function customerUser(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.user', 'App\\Models\\User'), 'customer_user_id');
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function order(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.order', 'App\\Models\\Order'), 'order_id');
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function orderItem(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.order_item', 'App\\Models\\OrderItem'), 'order_item_id');
     }
 
+    /**
+     * @return void
+     */
     public function release(): void
     {
         $this->update([
@@ -83,6 +98,10 @@ class CommissionLedger extends Model
         ]);
     }
 
+    /**
+     * @param string $reason
+     * @return void
+     */
     public function reverse(string $reason): void
     {
         $this->update([
@@ -92,11 +111,17 @@ class CommissionLedger extends Model
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function cancel(): void
     {
         $this->update(['status' => self::STATUS_CANCELLED]);
     }
 
+    /**
+     * @return string
+     */
     public function getStatusLabelAttribute(): string
     {
         return self::STATUS_LABELS[$this->status] ?? ucfirst($this->status);

@@ -31,16 +31,25 @@ class PromoUsage extends Model
         $this->table = config('marketing.tables.promo_usages', 'promo_usages');
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function promo(): BelongsTo
     {
         return $this->belongsTo(Promo::class);
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function order(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.order', 'App\\Models\\Order'));
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(config('marketing.models.user', 'App\\Models\\User'));

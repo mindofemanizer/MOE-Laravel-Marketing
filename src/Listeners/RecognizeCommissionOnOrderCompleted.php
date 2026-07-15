@@ -10,6 +10,10 @@ use Moe\Marketing\Models\MarketingAttributionLog;
 
 class RecognizeCommissionOnOrderCompleted
 {
+    /**
+     * @param \Moe\Commerce\Events\OrderStatusChanged $event
+     * @return void
+     */
     public function handle(OrderStatusChanged $event): void
     {
         if ($event->newStatus !== 'completed') {
