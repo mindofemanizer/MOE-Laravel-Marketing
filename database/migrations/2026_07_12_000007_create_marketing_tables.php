@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Commission Ledger
-        Schema::create('commission_ledger', function (Blueprint $table) {
+        Schema::create('marketing_commission_ledger', function (Blueprint $table) {
             $table->id();
             $table->foreignId('marketing_user_id')->constrained('users')->restrictOnDelete();
             $table->foreignId('customer_user_id')->constrained('users')->restrictOnDelete();

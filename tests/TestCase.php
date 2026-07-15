@@ -21,11 +21,37 @@ class TestCase extends Orchestra
             'database' => ':memory:',
             'prefix' => '',
         ]);
+        $app['config']->set('marketing.models.user', \Moe\Marketing\Tests\Stubs\User::class);
     }
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        if (! \Illuminate\Support\Facades\Schema::hasTable('users')) {
+            \Illuminate\Support\Facades\Schema::create('users', function ($table) {
+                $table->id();
+                $table->string('name');
+                $table->string('email')->unique();
+                $table->string('password');
+                $table->timestamps();
+            });
+        }
+
+        if (! \Illuminate\Support\Facades\Schema::hasTable('commerce_orders')) {
+            \Illuminate\Support\Facades\Schema::create('commerce_orders', function ($table) {
+                $table->id();
+                $table->timestamps();
+            });
+        }
+
+        if (! \Illuminate\Support\Facades\Schema::hasTable('commerce_order_items')) {
+            \Illuminate\Support\Facades\Schema::create('commerce_order_items', function ($table) {
+                $table->id();
+                $table->timestamps();
+            });
+        }
+
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
     }
 }
