@@ -12,10 +12,13 @@ return new class extends Migration
         if (!Schema::hasTable('marketing_commission_ledger')) {
         Schema::create('marketing_commission_ledger', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('marketing_user_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('customer_user_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('order_id')->constrained('commerce_orders')->restrictOnDelete();
-            $table->foreignId('order_item_id')->constrained('commerce_order_items')->restrictOnDelete();
+            $table->foreignUlid('marketing_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('customer_user_id')->constrained('users')->restrictOnDelete();
+            // Kolom order bersifat generik (ULID nullable) agar package bisa dipakai
+            // tanpa commerce ter-install. Host app mengisi sesuai domain masing-masing
+            // (mis. commerce_orders untuk KiosKit, bookings untuk HomeDevSystem).
+            $table->ulid('order_id')->nullable();
+            $table->ulid('order_item_id')->nullable();
             $table->decimal('amount', 15, 2);
             $table->decimal('rate', 5, 2);
             $table->string('status', 50)->default('on_hold');
@@ -38,12 +41,12 @@ return new class extends Migration
         if (!Schema::hasTable('marketing_attribution_logs')) {
             Schema::create('marketing_attribution_logs', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('customer_user_id')->constrained('users')->restrictOnDelete();
-                $table->foreignId('from_marketing_user_id')->nullable()->constrained('users')->nullOnDelete();
-                $table->foreignId('to_marketing_user_id')->nullable()->constrained('users')->nullOnDelete();
-                $table->string('action', 50);
-                $table->string('source', 50)->nullable();
-                $table->unsignedBigInteger('performed_by')->nullable();
+            $table->foreignUlid('customer_user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUlid('from_marketing_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUlid('to_marketing_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('action', 50);
+            $table->string('source', 50)->nullable();
+            $table->ulid('performed_by')->nullable();
                 $table->text('notes')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
@@ -76,9 +79,9 @@ return new class extends Migration
         if (!Schema::hasTable('promo_usages')) {
             Schema::create('promo_usages', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('promo_id')->constrained('promos')->restrictOnDelete();
-                $table->foreignId('order_id')->constrained('commerce_orders')->restrictOnDelete();
-                $table->foreignId('user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignId('promo_id')->constrained('promos')->restrictOnDelete();
+            $table->ulid('order_id')->nullable();
+            $table->foreignUlid('user_id')->constrained('users')->restrictOnDelete();
                 $table->decimal('discount_amount', 15, 2);
                 $table->timestamps();
                 $table->softDeletes();
