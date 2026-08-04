@@ -1,65 +1,69 @@
-{
-    "name": "moe/laravel-marketing",
-    "description": "Marketing module — Commission, Promo, Referral",
-    "type": "library",
-    "license": "MIT",
-    "keywords": [
-        "laravel",
-        "marketing",
-        "commission",
-        "promo",
-        "referral",
-        "attribution",
-        "moe"
-    ],
-    "authors": [
-        {
-            "name": "MindOfEmanizer",
-            "email": "mindofemanizer@users.noreply.github.com"
-        }
-    ],
-    "support": {
-        "issues": "https://github.com/mindofemanizer/MOE-Laravel-Marketing/issues",
-        "source": "https://github.com/mindofemanizer/MOE-Laravel-Marketing"
-    },
-    "require": {
-        "php": "^8.2",
-        "illuminate/support": "^11.0|^12.0|^13.0",
-        "moe/laravel-core": "dev-main"
-    },
-    "require-dev": {
-        "orchestra/testbench": "^9.0",
-        "phpunit/phpunit": "^10.5"
-    },
-    "autoload": {
-        "psr-4": {
-            "Moe\\Marketing\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Moe\\Marketing\\Tests\\": "tests/"
-        }
-    },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/mindofemanizer/MOE-Laravel-Core"
-        }
-    ],
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Moe\\Marketing\\MarketingServiceProvider"
-            ]
-        }
-    },
-    "scripts": {
-        "test": "phpunit"
-    },
-    "config": {
-        "sort-packages": true
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+﻿{
+    "name":  "moe/laravel-marketing",
+    "description":  "Marketing module â€” Commission, Promo, Referral",
+    "type":  "library",
+    "license":  "MIT",
+    "keywords":  [
+                     "laravel",
+                     "marketing",
+                     "commission",
+                     "promo",
+                     "referral",
+                     "attribution",
+                     "moe"
+                 ],
+    "authors":  [
+                    {
+                        "name":  "MindOfEmanizer",
+                        "email":  "mindofemanizer@users.noreply.github.com"
+                    }
+                ],
+    "support":  {
+                    "issues":  "https://github.com/mindofemanizer/MOE-Laravel-Marketing/issues",
+                    "source":  "https://github.com/mindofemanizer/MOE-Laravel-Marketing"
+                },
+    "require":  {
+                    "php":  "^8.2",
+                    "illuminate/support":  "^11.0|^12.0|^13.0",
+                    "moe/laravel-core":  "dev-main"
+                },
+    "require-dev":  {
+                        "orchestra/testbench":  "^9.0",
+                        "pestphp/pest":  "^3.0"
+                    },
+    "autoload":  {
+                     "psr-4":  {
+                                   "Moe\\Marketing\\":  "src/"
+                               }
+                 },
+    "autoload-dev":  {
+                         "psr-4":  {
+                                       "Moe\\Marketing\\Tests\\":  "tests/"
+                                   }
+                     },
+    "repositories":  [
+                         {
+                             "type":  "vcs",
+                             "url":  "https://github.com/mindofemanizer/MOE-Laravel-Core"
+                         }
+                     ],
+    "extra":  {
+                  "laravel":  {
+                                  "providers":  [
+                                                    "Moe\\Marketing\\MarketingServiceProvider"
+                                                ]
+                              }
+              },
+    "scripts":  {
+                    "test":  "pest",
+                    "test-coverage":  "pest --coverage"
+                },
+    "config":  {
+                   "sort-packages":  true,
+                   "allow-plugins":  {
+                                         "pestphp/pest-plugin":  true
+                                     }
+               },
+    "minimum-stability":  "dev",
+    "prefer-stable":  true
 }
