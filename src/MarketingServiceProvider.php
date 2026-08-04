@@ -24,13 +24,15 @@ class MarketingServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
-        $this->publishes([
-            __DIR__.'/../config/marketing.php' => config_path('marketing.php'),
-        ], 'marketing-config');
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__.'/../config/marketing.php' => config_path('marketing.php'),
+            ], 'marketing-config');
 
-        $this->publishes([
-            __DIR__.'/../database/migrations' => database_path('migrations'),
-        ], 'marketing-migrations');
+            $this->publishes([
+                __DIR__.'/../database/migrations' => database_path('migrations'),
+            ], 'marketing-migrations');
+        }
 
         $this->registerEventListeners();
     }

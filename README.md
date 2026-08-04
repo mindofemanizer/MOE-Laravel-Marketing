@@ -1,11 +1,11 @@
-# MOE-Laravel-Marketing
+﻿# MOE-Laravel-Marketing
 
-Marketing module for MOE ecosystem — Commission, Referral, Attribution, Promo.
+Marketing module for MOE ecosystem â€” Commission, Referral, Attribution, Promo.
 
 ## Installation
 
 ```bash
-composer require moe/laravel-marketing
+composer require moe/laravel-marketing:dev-main
 php artisan vendor:publish --provider="Moe\Marketing\MarketingServiceProvider" --tag="marketing-config"
 php artisan vendor:publish --provider="Moe\Marketing\MarketingServiceProvider" --tag="marketing-migrations"
 php artisan migrate

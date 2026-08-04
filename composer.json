@@ -1,14 +1,65 @@
 {
     "name": "moe/laravel-marketing",
     "description": "Marketing module — Commission, Promo, Referral",
-    "type": "library", "license": "MIT",
-    "autoload": { "psr-4": { "Moe\\Marketing\\": "src/" } },
-    "autoload-dev": { "psr-4": { "Moe\\Marketing\\Tests\\": "tests/" } },
-    "require": { "php": "^8.2", "illuminate/support": "^11.0|^12.0|^13.0", "moe/laravel-core": "dev-main" },
-    "require-dev": { "orchestra/testbench": "^9.0", "phpunit/phpunit": "^10.5" },
-    "repositories": [
-        {"type": "vcs", "url": "https://github.com/mindofemanizer/MOE-Laravel-Core"}
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "marketing",
+        "commission",
+        "promo",
+        "referral",
+        "attribution",
+        "moe"
     ],
-    "extra": { "laravel": { "providers": ["Moe\\Marketing\\MarketingServiceProvider"] } },
-    "minimum-stability": "dev", "prefer-stable": true
+    "authors": [
+        {
+            "name": "MindOfEmanizer",
+            "email": "mindofemanizer@users.noreply.github.com"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/mindofemanizer/MOE-Laravel-Marketing/issues",
+        "source": "https://github.com/mindofemanizer/MOE-Laravel-Marketing"
+    },
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0|^13.0",
+        "moe/laravel-core": "dev-main"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0",
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Moe\\Marketing\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Moe\\Marketing\\Tests\\": "tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/mindofemanizer/MOE-Laravel-Core"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Moe\\Marketing\\MarketingServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
