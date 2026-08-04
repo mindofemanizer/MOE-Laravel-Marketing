@@ -29,6 +29,8 @@ class CommissionLedger extends Model
         'marketing_user_id',
         'customer_user_id',
         'order_id',
+        'order_item_id',
+        'amount',
         'rate',
         'gross_amount',
         'cost_amount',
