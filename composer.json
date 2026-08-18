@@ -31,6 +31,9 @@
                         "orchestra/testbench":  "^9.0",
                         "pestphp/pest":  "^3.0"
                     },
+    "suggest":  {
+                    "moe/laravel-commerce":  "Enable Marketing listeners for Commerce order events"
+                },
     "autoload":  {
                      "psr-4":  {
                                    "Moe\\Marketing\\":  "src/"

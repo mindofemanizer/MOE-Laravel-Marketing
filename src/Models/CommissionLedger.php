@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Moe\Marketing\Models;
 
-use App\Models\Order;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -67,17 +65,17 @@ class CommissionLedger extends Model
 
     public function marketingUser(): BelongsTo
     {
-        return $this->belongsTo(config('marketing.models.user', User::class), 'marketing_user_id');
+        return $this->belongsTo(config('marketing.models.user', 'App\\Models\\User'), 'marketing_user_id');
     }
 
     public function customerUser(): BelongsTo
     {
-        return $this->belongsTo(config('marketing.models.user', User::class), 'customer_user_id');
+        return $this->belongsTo(config('marketing.models.user', 'App\\Models\\User'), 'customer_user_id');
     }
 
     public function order(): BelongsTo
     {
-        return $this->belongsTo(config('marketing.models.order', Order::class), 'order_id');
+        return $this->belongsTo(config('marketing.models.order', 'App\\Models\\Order'), 'order_id');
     }
 
     public function release(): void

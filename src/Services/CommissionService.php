@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Moe\Marketing\Services;
 
-use App\Models\Order;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -30,7 +28,6 @@ class CommissionService extends BaseService
      */
     public function recognize(Model $order): ?CommissionLedger
     {
-        /** @var Order $order */
         $order->loadMissing(['items', 'user']);
 
         $customer = $order->user;
@@ -38,7 +35,7 @@ class CommissionService extends BaseService
             return null;
         }
 
-        $userModel = config('marketing.models.user', User::class);
+        $userModel = config('marketing.models.user', 'App\\Models\\User');
         $marketing = $userModel::where('id', $customer->referred_by_user_id)
             ->where('role', 'marketing')
             ->where('is_active', true)
